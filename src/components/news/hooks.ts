@@ -31,7 +31,12 @@ export const useNewsQueries = (filters: Filters) => {
     const articles: Article[] = useMemo(() => {
         return queries
             .filter(q => q.data && Array.isArray(q.data))
-            .flatMap(q => q.data as Article[]);
+            .flatMap(q => q.data as Article[])
+            .sort((a, b) => {
+                const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+                const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+                return dateB - dateA;
+            });
     }, [queries]);
 
     const isLoading = queries.some(q => q.isLoading);
