@@ -22,7 +22,7 @@ export const NEWS_SOURCE_NEWS_API: Source = {
             description: a.description || a.content,
             image: a.urlToImage,
             category: undefined,
-            source: a.source?.name || undefined,
+            source: "News API",
             author: a.author,
             publishedAt: a.publishedAt,
         }));
