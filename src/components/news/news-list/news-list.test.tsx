@@ -8,7 +8,7 @@ test('renders news list with items', () => {
     { id: '2', title: 'Sample News Title 2', description: 'Sample news description 2.' },
   ];
 
-  render(<NewsList items={sampleItems} />);
+  render(<NewsList />);
 
   sampleItems.forEach(item => {
     expect(screen.getByText(item.title)).toBeInTheDocument();
