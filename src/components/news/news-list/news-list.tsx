@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import NewsCard, { NewsItem } from '../news-card/news-card';
 import SideBar from '../side-bar/side-bar';
 import { useNewsQueries } from '../hooks';
@@ -8,13 +8,18 @@ import { NEWS_SOURCE_NEWS_API } from '../../../services/news/sources/news-api';
 import { NEWS_SOURCE_THE_GUARDIAN } from '../../../services/news/sources/the-guardian';
 import { NEWS_SOURCE_NY_TIMES } from '../../../services/news/sources/ny-times';
 
-// Component no longer takes items as prop. It fetches articles via useNewsQueries.
+/**
+ * NewsList component displays a list of news articles.
+ * It includes a search input and a sidebar for filtering options.
+ */
 const NewsList: React.FC = () => {
-	const [query, setQuery] = useState('');
+	const SEARCH_DEBOUNCE_MS = 500;
 	const [showSidebar, setShowSidebar] = useState(false);
-	// Minimal filters state. Sidebar currently is a UI-only component in this repo,
-	// so start with a default filters object that selects all available sources.
-	const [filters] = useState<Filters>(() => ({
+	const [query, setQuery] = useState('');
+	// Local debounced value to delay applying filters until user stops typing
+	const [debouncedQuery, setDebouncedQuery] = useState(query);
+
+	const [filters, setFilters] = useState<Filters>(() => ({
 		sources: [NEWS_SOURCE_NY_TIMES, NEWS_SOURCE_THE_GUARDIAN, NEWS_SOURCE_NEWS_API],
 		categories: [],
 		dates: {},
@@ -22,18 +27,23 @@ const NewsList: React.FC = () => {
 		authors: [],
 	}));
 
-	// Use hook to fetch articles according to current filters
+	// Use hook to fetch articles according to current filters (server-side filtering)
 	const { articles, isLoading, isError } = useNewsQueries(filters);
+	const results = (articles as NewsItem[]) || [];
 
-	const filtered = useMemo(() => {
-		const q = query.trim().toLowerCase();
-		if (!q) return (articles as NewsItem[]) || [];
-		return (articles as NewsItem[]).filter((it) => {
-			const title = it.title?.toLowerCase() ?? '';
-			const desc = it.description?.toLowerCase() ?? '';
-			return title.includes(q) || desc.includes(q);
-		});
-	}, [articles, query]);
+	// Apply debounce: when debouncedQuery changes, wait 500ms of inactivity then update filters
+	useEffect(() => {
+		const handler = setTimeout(() => {
+			const trimmed = debouncedQuery.trim();
+			if (trimmed.length >= 3) {
+				setFilters((prev) => ({ ...prev, query: trimmed }));
+			} else {
+				setFilters((prev) => ({ ...prev, query: undefined }));
+			}
+		}, SEARCH_DEBOUNCE_MS);
+
+		return () => clearTimeout(handler);
+	}, [debouncedQuery]);
 
 	return (
 		<section className="news-list">
@@ -43,7 +53,12 @@ const NewsList: React.FC = () => {
 					id="news-search"
 					type="search"
 					value={query}
-					onChange={(e) => setQuery(e.target.value)}
+					onChange={(e) => {
+						const v = e.target.value;
+						setQuery(v);
+						// update debouncedQuery; actual filters updated in effect after 500ms
+						setDebouncedQuery(v);
+					}}
 					placeholder="Search news..."
 					className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring"
 				/>
@@ -65,11 +80,12 @@ const NewsList: React.FC = () => {
 				{/* Sidebar drawer */}
 				<SideBar show={showSidebar} onClose={() => setShowSidebar(false)} />
 			</div>
-			<div>{filtered.length} articles found</div>
+
+			<div>{results.length} articles found</div>
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 				{isLoading && <div>Loading news...</div>}
 				{isError && <div>Error loading news.</div>}
-				{!isLoading && !isError && filtered.map((item) => (
+				{!isLoading && !isError && results.map((item) => (
 					<NewsCard key={item.id} item={item} />
 				))}
 			</div>
