@@ -12,6 +12,7 @@ export interface Article {
 export interface Source {
     name: string;
     apiEndpoint: (filters: Filters) => string;
+    apiResponseParser: (raw: any) => Article[];
 }
 
 export interface Filters {
