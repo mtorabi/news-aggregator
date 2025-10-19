@@ -3,6 +3,7 @@ import { useQueries, UseQueryResult } from "@tanstack/react-query";
 import { Article, Filters, Source } from "../../services/news/model";
 import { AVAILABLE_NEWS_SOURCES } from "../../services/news/available-news-sources";
 import { fetchNewsForSource } from "../../services/news/service";
+import { loadPreferredAuthors } from "../../services/news/authors/service";
 
 /**
  * Hook contract:
@@ -26,16 +27,37 @@ export const useNewsQueries = (filters: Filters) => {
         }))
     }) as UseQueryResult<Article[], unknown>[];
 
-    // Aggregate articles and global state
-    const articles: Article[] = useMemo(() => {
-        return queries
+    // Aggregate articles and global state; also collect unique authors
+    const { articles, authors } = useMemo(() => {
+        const preferredAuthors = loadPreferredAuthors();
+        const articles = queries
             .filter(q => q.data && Array.isArray(q.data))
             .flatMap(q => q.data as Article[])
+            .filter((art) => {
+                if( preferredAuthors.length === 0) return true;
+                if (!art.author || typeof art.author !== 'string') return false;
+                return preferredAuthors.includes(art.author);
+            })
             .sort((a, b) => {
                 const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
                 const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
                 return dateB - dateA;
             });
+
+        // Collect unique authors
+        const authors: string[] = [];
+        for (const art of articles) {
+            if (art.author && typeof art.author === 'string') {
+                if (!authors.includes(art.author)) {
+                    authors.push(art.author);
+                }
+            }
+        }
+
+        // Sort authors alphabetically
+        authors.sort((a, b) => a.localeCompare(b));
+
+        return { articles: articles, authors: authors };
     }, [queries]);
 
     const isLoading = queries.some(q => q.isLoading);
@@ -47,6 +69,7 @@ export const useNewsQueries = (filters: Filters) => {
 
     return {
         articles,
+        authors,
         isLoading,
         isError,
         refetch,

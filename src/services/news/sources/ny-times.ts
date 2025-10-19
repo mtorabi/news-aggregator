@@ -26,7 +26,7 @@ export const NEWS_SOURCE_NY_TIMES: Source = {
                 : '')
             + (filters.authors && filters.authors.length > 0
                 ? `&fq=byline:(${filters.authors.map((a) => `${a}`).join(',')})`
-                : '')
+                : '');
     },
     apiResponseParser: (raw: any) => {
         // NYT Article Search API returns { response: { docs: [ ... ] } }

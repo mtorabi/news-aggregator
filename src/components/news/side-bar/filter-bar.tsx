@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { AVAILABLE_CATEGORIES, Source } from '../../../services/news/model';
 import { AVAILABLE_NEWS_SOURCES } from '../../../services/news/available-news-sources';
+import { loadPreferredSources } from '../../../services/news/sources/service';
+import { loadPreferredCategories } from '../../../services/news/category/service';
 
 type Props = {
   show: boolean;
@@ -11,9 +13,14 @@ type Props = {
 const FilterBar: React.FC<Props> = ({ show, onClose, onApply }) => {
   const [visible, setVisible] = useState(show);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedSources, setSelectedSources] = useState<Source[]>(AVAILABLE_NEWS_SOURCES);
+  const [selectedSources, setSelectedSources] = useState<Source[]>(() => {
+    return loadPreferredSources();
+  });
   const [fromDate, setFromDate] = useState<string | null>(null);
   const [toDate, setToDate] = useState<string | null>(null);
+
+  const allSources = loadPreferredSources();
+  const allCategories = loadPreferredCategories();
 
   useEffect(() => {
     if (show) setVisible(true);
@@ -42,7 +49,7 @@ const FilterBar: React.FC<Props> = ({ show, onClose, onApply }) => {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Filter News</h2>
+          <h2 className="text-lg font-semibold">Filters</h2>
           <button
             aria-label="Close settings"
             type="button"
@@ -63,11 +70,11 @@ const FilterBar: React.FC<Props> = ({ show, onClose, onApply }) => {
             value={selectedSources.map(s => s.name)}
             onChange={(e) => {
               const options = Array.from(e.target.selectedOptions).map((o) => o.value);
-              setSelectedSources(AVAILABLE_NEWS_SOURCES.filter(s => options.includes(s.name)));
+              setSelectedSources(allSources.filter(s => options.includes(s.name)));
             }}
             className="w-full border rounded p-2"
           >
-            {AVAILABLE_NEWS_SOURCES.map((s) => (
+            {allSources.map((s) => (
               <option key={s.name} value={s.name}>
                 {s.displayName}
               </option>
@@ -90,7 +97,7 @@ const FilterBar: React.FC<Props> = ({ show, onClose, onApply }) => {
             }}
             className="w-full border rounded p-2 h-40 overflow-auto"
           >
-            {AVAILABLE_CATEGORIES.map((c) => (
+            {allCategories.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
