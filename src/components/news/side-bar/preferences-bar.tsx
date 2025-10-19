@@ -5,7 +5,7 @@ type Props = {
   onClose: () => void;
 };
 
-const SideBar: React.FC<Props> = ({ show, onClose }) => {
+const PreferencesBar: React.FC<Props> = ({ show, onClose }) => {
   const [visible, setVisible] = useState(show);
 
   type CheckboxOption = { id: string; label: string; checked: boolean };
@@ -72,7 +72,7 @@ const SideBar: React.FC<Props> = ({ show, onClose }) => {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Settings</h2>
+          <h2 className="text-lg font-semibold">News Preferences</h2>
           <button
             aria-label="Close settings"
             type="button"
@@ -122,4 +122,4 @@ const SideBar: React.FC<Props> = ({ show, onClose }) => {
   );
 };
 
-export default SideBar;
+export default PreferencesBar;

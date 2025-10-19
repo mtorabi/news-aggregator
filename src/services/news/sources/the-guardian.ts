@@ -2,16 +2,17 @@ import { Filters, Source } from "../model";
 
 export const NEWS_SOURCE_THE_GUARDIAN: Source = {
     name: 'theGuardian',
+    displayName: 'The Guardian',
     apiEndpoint: (filters: Filters) => `https://content.guardianapis.com/search?show-fields=thumbnail,byline,trailText`
         + `&api-key=${process.env.REACT_APP_GUARDIAN_API_KEY}`
         + (filters.query !== undefined ? `&q=${filters.query || ''}` : '')
         + (filters.dates.from ? `&from-date=${filters.dates.from}` : '')
         + (filters.dates.to ? `&to-date=${filters.dates.to}` : '')
         + (filters.categories && filters.categories.length > 0
-            ? `&section=${filters.categories.map((c) => `"${c}"`).join(' ')}`
+            ? `&section=${filters.categories.map((c) => `${c}`).join(',')}`
             : '')
         + (filters.authors && filters.authors.length > 0
-            ? `&byline=${filters.authors.map((a) => `"${a}"`).join(' ')}`
+            ? `&byline=${filters.authors.map((a) => `${a}`).join(',')}`
             : ''),
     apiResponseParser: (raw: any) => {
         // The Guardian API typically returns { response: { results: [ { id, webTitle, webUrl, fields, sectionName, webPublicationDate } ] } }
@@ -27,4 +28,11 @@ export const NEWS_SOURCE_THE_GUARDIAN: Source = {
             publishedAt: r.webPublicationDate,
         }));
     },
+    canSupportFilters: (filters: Filters) => {
+        // The Guardian API supports only one category at a time
+        if (filters.categories && filters.categories.length > 1) {
+            return false;
+        }
+        return filters.sources.some(s => s.name === 'theGuardian');
+    }
 };
