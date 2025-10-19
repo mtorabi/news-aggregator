@@ -1,49 +1,27 @@
 import React, { useEffect, useState } from 'react';
+import { AVAILABLE_CATEGORIES, Source } from '../../../services/news/model';
+import { AVAILABLE_NEWS_SOURCES } from '../../../services/news/available-news-sources';
+import { clearPreferredAuthors, loadPreferredAuthors, storePreferredAuthors } from '../../../services/news/authors/service';
+import { clearPreferredSources, loadPreferredSources, storePreferredSources } from '../../../services/news/sources/service';
+import { clearPreferredCategories, loadPreferredCategories, storePreferredCategories } from '../../../services/news/category/service';
 
 type Props = {
   show: boolean;
   onClose: () => void;
+  allAuthors?: string[];
 };
 
-const PreferencesBar: React.FC<Props> = ({ show, onClose }) => {
+const PreferencesBar: React.FC<Props> = ({ show, onClose, allAuthors }) => {
   const [visible, setVisible] = useState(show);
-
-  type CheckboxOption = { id: string; label: string; checked: boolean };
-  type Group = { id: string; title: string; options: CheckboxOption[] };
-
-  const [groups, setGroups] = useState<Group[]>([
-    {
-      id: 'group-1',
-      title: 'Sources',
-      options: [
-        { id: 'g1-o1', label: 'BBC News', checked: false },
-        { id: 'g1-o2', label: 'CNN', checked: false },
-        { id: 'g1-o3', label: 'Reuters', checked: false },
-      ],
-    },
-    {
-      id: 'group-2',
-      title: 'Categories',
-      options: [
-        { id: 'g2-o1', label: 'Technology', checked: false },
-        { id: 'g2-o2', label: 'Business', checked: false },
-        { id: 'g2-o3', label: 'Sports', checked: false },
-      ],
-    },
-  ]);
-
-  const toggleOption = (groupId: string, optionId: string) => {
-    setGroups((prev) =>
-      prev.map((g) =>
-        g.id !== groupId
-          ? g
-          : {
-              ...g,
-              options: g.options.map((o) => (o.id === optionId ? { ...o, checked: !o.checked } : o)),
-            }
-      )
-    );
-  };
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
+    return loadPreferredCategories();
+  });
+  const [selectedSources, setSelectedSources] = useState<Source[]>(() => {
+    return loadPreferredSources();
+  });
+  const [selectedAuthors, setSelectedAuthors] = useState<string[]>(() => {
+    return loadPreferredAuthors();
+  });
 
   useEffect(() => {
     if (show) setVisible(true);
@@ -53,6 +31,19 @@ const PreferencesBar: React.FC<Props> = ({ show, onClose }) => {
       return () => clearTimeout(t);
     }
   }, [show]);
+
+  const handleClear = () => {
+    setSelectedAuthors([]);
+    setSelectedCategories([]);
+    setSelectedSources(AVAILABLE_NEWS_SOURCES);
+    clearPreferredAuthors();
+    clearPreferredSources();
+    clearPreferredCategories();
+  };
+
+  const handleDone = () => {
+    onClose();
+  };
 
   if (!visible) return null;
 
@@ -72,7 +63,7 @@ const PreferencesBar: React.FC<Props> = ({ show, onClose }) => {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">News Preferences</h2>
+          <h2 className="text-lg font-semibold">Preferences</h2>
           <button
             aria-label="Close settings"
             type="button"
@@ -82,37 +73,92 @@ const PreferencesBar: React.FC<Props> = ({ show, onClose }) => {
             ✕
           </button>
         </div>
-
-        <div>
-          <p className="text-sm text-gray-600 mb-3">Choose filters to narrow the news feed.</p>
-
-          {/* Checkbox groups */}
-          <div className="space-y-4">
-            {groups.map((group) => (
-              <fieldset key={group.id} className="border rounded p-3">
-                <legend className="text-sm font-medium">{group.title}</legend>
-                <div className="mt-2 space-y-2">
-                  {group.options.map((opt) => (
-                    <label key={opt.id} className="flex items-center space-x-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={opt.checked}
-                        onChange={() => toggleOption(group.id, opt.id)}
-                        className="form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded"
-                      />
-                      <span>{opt.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
+        {/* Source filter */}
+        <div className="mb-4">
+          <label htmlFor="source" className="block text-sm font-medium text-gray-700 mb-1">
+            Source
+          </label>
+          <select
+            id="source"
+            multiple
+            value={selectedSources.map(s => s.name)}
+            onChange={(e) => {
+              const options = Array.from(e.target.selectedOptions).map((o) => o.value);
+              const sources = AVAILABLE_NEWS_SOURCES.filter(s => options.includes(s.name));
+              setSelectedSources(sources);
+              storePreferredSources(sources);
+            }}
+            className="w-full border rounded p-2"
+          >
+            {AVAILABLE_NEWS_SOURCES.map((s) => (
+              <option key={s.name} value={s.name}>
+                {s.displayName}
+              </option>
             ))}
-          </div>
+          </select>
         </div>
-        <div className="mt-4 flex justify-end">
+
+        {/* Category filter */}
+        <div className="mb-4">
+          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+            Categories
+          </label>
+          <select
+            id="category"
+            multiple
+            value={selectedCategories}
+            onChange={(e) => {
+              const options = Array.from(e.target.selectedOptions).map((o) => o.value);
+              setSelectedCategories(options);
+              storePreferredCategories(options);
+            }}
+            className="w-full border rounded p-2 h-40 overflow-auto"
+          >
+            {AVAILABLE_CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Author filter */}
+        <div className="mb-4">
+          <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-1">
+            Authors
+          </label>
+          <select
+            id="author"
+            multiple
+            value={selectedAuthors}
+            onChange={(e) => {
+              const options = Array.from(e.target.selectedOptions).map((o) => o.value);
+              setSelectedAuthors(options);
+              storePreferredAuthors(options);
+            }}
+            className="w-full border rounded p-2 h-40 overflow-auto"
+          >
+            {(allAuthors || []).map((a) => (
+              <option key={a} value={a}>
+                {a}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Actions: Clear and Done */}
+        <div className="flex items-center justify-end space-x-2 mt-2">
           <button
             type="button"
-            onClick={onClose}
-            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-3 py-2 rounded border hover:bg-gray-100"
+            onClick={handleClear}
+          >
+            Clear
+          </button>
+          <button
+            type="button"
+            className="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+            onClick={handleDone}
           >
             Done
           </button>

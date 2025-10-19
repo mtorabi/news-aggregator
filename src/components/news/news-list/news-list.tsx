@@ -4,7 +4,16 @@ import PreferencesBar from '../side-bar/preferences-bar';
 import { useNewsQueries } from '../hooks';
 import { Filters } from '../../../services/news/model';
 import FilterBar from '../side-bar/filter-bar';
-import { AVAILABLE_NEWS_SOURCES } from '../../../services/news/available-news-sources';
+import { loadPreferredSources } from '../../../services/news/sources/service';
+import { loadPreferredCategories } from '../../../services/news/category/service';
+
+const DEFAULT_FILTERS: Filters = {
+	sources: loadPreferredSources(),
+	categories: loadPreferredCategories(),
+	dates: {},
+	query: undefined,
+	authors: [],
+}
 
 /**
  * NewsList component displays a list of news articles.
@@ -25,16 +34,10 @@ const NewsList: React.FC = () => {
 	const [debouncedQuery, setDebouncedQuery] = useState(query);
 
 	// API filters state
-	const [filters, setFilters] = useState<Filters>(() => ({
-		sources: AVAILABLE_NEWS_SOURCES,
-		categories: [],
-		dates: {},
-		query: undefined,
-		authors: [],
-	}));
+	const [filters, setFilters] = useState<Filters>(() => DEFAULT_FILTERS);
 
 	// Use hook to fetch articles according to current filters (server-side filtering)
-	const { articles, isLoading, isError } = useNewsQueries(filters);
+	const { articles, authors, isLoading, isError } = useNewsQueries(filters);
 	const results = (articles as NewsItem[]) || [];
 
 	// Apply debounce: when debouncedQuery changes, wait 500ms of inactivity then update filters
@@ -100,7 +103,10 @@ const NewsList: React.FC = () => {
 
 
 				{/* Preferences drawer */}
-				<PreferencesBar show={showPreferences && !showFilter} onClose={() => setShowPreferences(false)} />
+				<PreferencesBar allAuthors={authors} show={showPreferences && !showFilter} onClose={() => {
+					setShowPreferences(false);
+					setFilters(DEFAULT_FILTERS);
+				}} />
 
 				{/* Filter drawer */}
 				<FilterBar
