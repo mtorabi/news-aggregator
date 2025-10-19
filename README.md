@@ -47,6 +47,23 @@ docker run -p 3000:80 news-aggregator
 
 Then open [http://localhost:3000](http://localhost:3000)
 
+### Docker Compose
+
+A `docker-compose.yml` is included to build and run the image easily.
+
+From the project root (PowerShell):
+
+```powershell
+# Build and start the service in foreground
+docker compose up --build
+
+# Or run in detached mode
+docker compose up -d --build
+
+# Stop and remove containers
+docker compose down
+```
+
 ## 📁 Project structure (important files)
 
 ```text
