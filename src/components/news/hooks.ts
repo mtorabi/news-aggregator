@@ -12,8 +12,7 @@ import { fetchNewsForSource } from "../../services/news/service";
 export const useNewsQueries = (filters: Filters) => {
     // Determine the selected sources from filters
     const selectedSources: Source[] = useMemo(() => {
-        const names = new Set(filters.sources.map(s => s.name));
-        return AVAILABLE_NEWS_SOURCES.filter(s => names.has(s.name));
+        return filters.sources.filter(source => source.canSupportFilters(filters));
     }, [filters]);
 
     // Build queries for each selected source
