@@ -12,7 +12,7 @@ export const storePreferredSources = (sources: Source[]) => {
         const sourceNames = sources.map(s => s.name);
         localStorage.setItem(PREFERRED_SOURCE_KEY, JSON.stringify(sourceNames));
     } catch (error) {
-        console.error("Error storing preferred sources:", error);
+        // ignore localStorage write errors
     }
 };
 
@@ -31,7 +31,6 @@ export const loadPreferredSources = (): Source[] => {
         
         return AVAILABLE_NEWS_SOURCES.filter(s => stored.includes(s.name));
     } catch (error) {
-        console.error("Error loading preferred sources:", error);
         return [];
     }
 };
@@ -43,6 +42,6 @@ export const clearPreferredSources = () => {
     try {
         localStorage.removeItem(PREFERRED_SOURCE_KEY);
     } catch (error) {
-        console.error("Error clearing preferred sources:", error);
+        // ignore localStorage write errors
     }
 };
