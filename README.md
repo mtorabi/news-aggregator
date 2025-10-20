@@ -14,6 +14,26 @@ These instructions help you run the app locally for development and build a prod
 
 ### Local development
 
+Before running the app, create a local environment file from the example if one is present. On Unix/macOS:
+
+```bash
+cp .env.example .env
+```
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+You will need three API keys from these APIs:
+
+- [NewsAPI.org](https://newsapi.org/)
+- [NY times API](https://developer.nytimes.com/)
+- [The Guardian API](https://open-platform.theguardian.com/access/)
+
+Create an account in their website and replace the API keys in the `.env` file
+
 Install dependencies and start the dev server:
 
 ```bash
@@ -90,7 +110,7 @@ src
 
 This application applies the Strategy Pattern to remain open for extension but closed for modification (in line with the SOLID principles) when integrating support for new news APIs. To achieve this goal:
 
-- Add a new implementation of the `Source` interface to the `AVAILABLE_NEWS_SOURCES` array, located at: `src/service/news/available-news-source.ts`
+- Add a new implementation of the `Source` interface to the `AVAILABLE_NEWS_SOURCES` array, located at: `src/services/news/available-news-source.ts`
 - The `Source` interface provides:
 
 ```typescript
@@ -124,4 +144,12 @@ export interface Source {
   - **Mapping the API response** into the Article interface by implementing the `apiResponseParser` method
   - **Determining filter compatibility** by implementing the `canSupportFilters` method, which indicates whether this API can handle the current filter
 
----
+## Screenshots
+
+Below are three screenshots from the running app (files located in the `screenshots/` folder):
+
+![Screenshot 1](screenshots/Screenshot-1.png)
+
+![Screenshot 2](screenshots/Screenshot-2.png)
+
+![Screenshot 3](screenshots/Screenshot-3.png)
