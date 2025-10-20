@@ -64,7 +64,7 @@ test('clicking Done calls onClose and clicking backdrop calls onClose', async ()
   // Re-render to test backdrop click (use rerender to avoid duplicated DOM nodes)
   const { rerender } = render(<PreferencesBar show={true} onClose={onClose} allAuthors={[]} />);
   rerender(<PreferencesBar show={true} onClose={onClose} allAuthors={[]} />);
-  const backdrop = screen.getAllByLabelText('Close settings backdrop')[0];
+  const backdrop = screen.getAllByLabelText('Close preferences backdrop')[0];
   await userEvent.click(backdrop);
   // onClose called again
   expect(onClose).toHaveBeenCalledTimes(2);

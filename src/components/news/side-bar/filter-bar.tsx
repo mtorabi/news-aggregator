@@ -40,16 +40,21 @@ const FilterBar: React.FC<Props> = ({ show, onClose, onApply }) => {
       <button
         className={`absolute inset-0 w-full h-full bg-black ${show ? 'bg-opacity-30' : 'bg-opacity-0'} transition-opacity duration-500 linear`}
         onClick={onClose}
-        aria-label="Close settings backdrop"
+        aria-label="Close filters backdrop"
       />
 
       {/* Aside: slide in from right */}
       <aside
+        id="filter-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="filter-title"
         className={`absolute inset-y-0 right-0 w-80 bg-white border-l shadow-lg z-50 p-4 transform ${show ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-500 linear`}
         onClick={(e) => e.stopPropagation()}
+        tabIndex={-1}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Filters</h2>
+          <h2 id="filter-title" className="text-lg font-semibold">Filters</h2>
           <button
             aria-label="Close settings"
             type="button"

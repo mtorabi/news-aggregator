@@ -42,8 +42,10 @@ test('selecting categories and sources and applying filter calls callbacks', asy
   await userEvent.type(fromInput, '2020-01-01');
   await userEvent.type(toInput, '2020-12-31');
 
-  // Click Filter
-  const filterButton = screen.getByRole('button', { name: /Filter/i });
+  // Click Filter (ignore backdrop button which has an aria-label)
+  const buttons = screen.getAllByRole('button');
+  const filterButton = buttons.find(b => b.textContent?.trim() === 'Filter');
+  if (!filterButton) throw new Error('Filter button not found');
   await userEvent.click(filterButton);
 
   // onApply should be called with selected values and onClose should be called
